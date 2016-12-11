@@ -79,13 +79,16 @@ class AddTableViewController: UITableViewController, UIImagePickerControllerDele
         let title = self.txtTitle.text
         let desc = self.txtDescription.text
         
-        print(title)
-        print(desc)
-        
-        let param : Parameters = ["TITLE" : title, "DESCRIPTION" : desc, "AUTHOR": 0, "CATEGORY_ID": 0, "STATUS" : "string", "IMAGE" : imageUrl]
-        let headers : HTTPHeaders = ["Authorization" :"Basic QU1TQVBJQURNSU46QU1TQVBJUEBTU1dPUkQ=", "Content-Type": "application/json", "Accept":"*/*" ]
-        
-        Alamofire.request("http://120.136.24.174:1301/v1/api/articles", method: HTTPMethod.post, parameters: param, encoding: URLEncoding.httpBody, headers: headers).responseJSON(completionHandler: {
+        let param : Parameters = [
+            "TITLE": title! as String,
+            "DESCRIPTION": desc! as String,
+            "AUTHOR": 0,
+            "CATEGORY_ID": 0,
+            "STATUS": "string",
+            "IMAGE": imageUrl
+        ]
+        let headers : HTTPHeaders = ["Authorization" :"Basic QU1TQVBJQURNSU46QU1TQVBJUEBTU1dPUkQ=", "Content-Type": "application/json"]
+        Alamofire.request("http://120.136.24.174:1301/v1/api/articles", method: HTTPMethod.post, parameters: param, encoding: JSONEncoding.default, headers: headers).responseJSON(completionHandler: {
             
             response in
             

@@ -31,10 +31,10 @@ class TableViewController: UITableViewController {
             
             self.arrayArticle = response.result.value!
             self.tableView.reloadData()
-            for arr in self.arrayArticle{
-                print("Title : \(arr.title!)")
-                
-            }
+//            for arr in self.arrayArticle{
+//                print("Title : \(arr.title!)")
+//                
+//            }
             
         })
     }
