@@ -7,3 +7,7 @@
 //
 
 import Foundation
+
+
+let BASE_URL = "http://120.136.24.174:1301"
+let UPLOAD_IMAGE_SINGLE = BASE_URL + "/v1/api/uploadfile/single"

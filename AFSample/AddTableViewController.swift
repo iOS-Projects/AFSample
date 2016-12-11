@@ -7,89 +7,104 @@
 //
 
 import UIKit
+import Alamofire
+import SwiftSpinner
 
-class AddTableViewController: UITableViewController {
 
+class AddTableViewController: UITableViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+
+    @IBOutlet weak var txtTitle: UITextField!
+    @IBOutlet weak var txtDescription: UITextField!
+    @IBOutlet weak var imgView: UIImageView!
+    
+    
+    @IBAction func btnBrowse(_ sender: Any) {
+        let imagePicker = UIImagePickerController()
+        imagePicker.allowsEditing = false
+        imagePicker.sourceType = .photoLibrary
+        imagePicker.delegate = self
+        present(imagePicker, animated: true, completion: nil)
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
+        
+        // Get image
+        let image = info[UIImagePickerControllerOriginalImage] as! UIImage
+        // Display image to imageview
+        imgView.image = image
+        // Dismiss ImagePickerController
+        picker.dismiss(animated: true, completion: nil)
+        
+    }
+    
+    @IBAction func btnSave(_ sender: Any) {
+        
+        SwiftSpinner.show("Image Uploading...")
+        
+        
+        let img = self.imgView.image
+        let imageData = UIImageJPEGRepresentation(img!, 1)
+        let headers : HTTPHeaders = ["Authorization" :"Basic QU1TQVBJQURNSU46QU1TQVBJUEBTU1dPUkQ="]
+        // Upload Image
+        Alamofire.upload(multipartFormData: { formData in
+            // Append Image to FormData
+            formData.append(imageData!, withName: "FILE", fileName: "image.jpg", mimeType: "image/jpg")
+            
+        
+        }, usingThreshold: 0, to: URL(string: UPLOAD_IMAGE_SINGLE)!, method: HTTPMethod.post, headers: headers, encodingCompletion: { result in
+            
+            switch result{
+            case .success(let upload, _, _):
+                upload.responseJSON(completionHandler: { data in
+                    SwiftSpinner.hide()
+                    let dic = data.result.value as! NSDictionary
+                    print(dic["DATA"])
+                    // Start posting article
+                    self.postArticle(imageUrl: dic["DATA"]! as! String)
+                    
+                })
+                
+            case .failure(let error):
+                
+                SwiftSpinner.show("Failed to connect, waiting...", animated: false)
+                print(error.localizedDescription)
+            }
+            
+        })
+        
+        // Post Article
+    }
+       func postArticle(imageUrl: String){
+        SwiftSpinner.show("Posting Article...")
+        let title = self.txtTitle.text
+        let desc = self.txtDescription.text
+        
+        print(title)
+        print(desc)
+        
+        let param : Parameters = ["TITLE" : title, "DESCRIPTION" : desc, "AUTHOR": 0, "CATEGORY_ID": 0, "STATUS" : "string", "IMAGE" : imageUrl]
+        let headers : HTTPHeaders = ["Authorization" :"Basic QU1TQVBJQURNSU46QU1TQVBJUEBTU1dPUkQ=", "Content-Type": "application/json", "Accept":"*/*" ]
+        
+        Alamofire.request("http://120.136.24.174:1301/v1/api/articles", method: HTTPMethod.post, parameters: param, encoding: URLEncoding.httpBody, headers: headers).responseJSON(completionHandler: {
+            
+            response in
+            
+            debugPrint(response)
+            
+            SwiftSpinner.hide()
+        
+        })
+        
+        
+        
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
+        
     }
+    
+    
 
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
-    }
-
-    // MARK: - Table view data source
-
-    override func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-        return 0
-    }
-
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
-        return 0
-    }
-
-    /*
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
-
-        return cell
-    }
-    */
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
-    }
-    */
-
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
-    }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
-    }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
-    }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+    
 }
